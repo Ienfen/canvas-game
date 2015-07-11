@@ -1,0 +1,28 @@
+canvas{
+	display: block;
+	margin: 0 auto;
+	margin-top: 5%;
+}
+.buttons {
+	text-align: center;
+}
+.button {
+	color: #fff;
+	position: relative;
+	display: inline-block;
+	line-height: 1.2;
+	text-align: center;
+	vertical-align: middle;
+	cursor: pointer;
+	padding: 0.5em 2em;
+	/*min-width: 10em;
+ 	min-height: 2.5em;*/
+	background-color: #f00;
+	border-radius: 10px;
+	transition: 0.4s;
+}
+
+.button:hover{
+	background-color: #00F;
+}
+
