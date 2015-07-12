@@ -116,13 +116,10 @@ var player = {
 }
 
 var bullets = [];
-var explosion = [];
 
 var playerSpeed = 150;
 var enemiesSpeed = 10;
 var bulletsSpeed = 200;
-
-var gameTime = 0;
 
 var enemi = {
 	position: [0,0],
@@ -150,7 +147,6 @@ function render(dt) {
 	// renderEntity(player);
 	renderEntities(enemies);
 	renderEntities(bullets);
-	renderEntities(explosion);
 	renderEntity(player);
 	//player.animCreate.render(player.pos);
 
@@ -176,18 +172,12 @@ function renderBackground() {
 }
 
 function update(dt){
-	gameTime += dt;
 
 	checkInputs(dt);
 	player.animCreate.update(dt);
 
-	addEnemy(enemies, gameTime);
-
 	updateEnemies(enemies, dt);
-	updateBullets(bullets, dt);
-	updateExplosions(explosion, dt);
-
-	checkCollision(enemies, bullets);
+	updateBullets(bullets, dt)
 
 
 }
@@ -195,9 +185,7 @@ function update(dt){
 function updateEnemies(list, dt) {
 	for(var i = 0; i < list.length; i++) {
 		updateEnemy(list[i], dt);
-		if(list[i].pos[1] > height) { 
-			deleteEntity(list, i);
-		}
+		deleteEntity(list, i);
 	}
 }
 
@@ -209,9 +197,7 @@ function updateEnemy(enemy, dt) {
 function updateBullets(list, dt) {
 	for(var i = 0; i < list.length; i++) {
 		updateBullet(list[i], dt);
-		if(list[i].pos[1] < 0 - list[i].animCreate.imgSize[1]) {
-			deleteEntity(list, i);
-		}
+		deleteEntity(list, i);
 	}
 }
 
@@ -219,29 +205,12 @@ function updateBullet(bullet, dt) {
 	bullet.pos[1] -= dt * bulletsSpeed;
 	bullet.animCreate.update(dt);
 }
-
-function updateExplosions(list, dt) {
-	for(var i = 0; i < list.length; i++) {
-		updateExplosion(list[i], dt);
-	}
-}
-
-function updateExplosion(explosion, dt) {
-	explosion.animCreate.update(dt);
-}
-
 function deleteEntity(list, i) {
+	if(list[i].pos[1] > height || list[i].pos[1] < 0 - list[i].animCreate.imgSize[1]) {
 		list.splice(i, 1);
-}
-
-function addEnemy(enemies, time) {
-	if(Math.random() < 1 - Math.pow(0.99, time)) {
-		enemies.push({
-			pos: [randomPos(), 0],
-			animCreate: new AnimCreate ("img/sprite.png", [4,116], [24,46], 4, false, 2)
-		});
 	}
 }
+
 
 function checkInputs(dt) {
 	if(inputStatus.isPressed("Left")) {
@@ -264,11 +233,11 @@ function checkInputs(dt) {
 		addBullet();
 	}
 }
-
+/***************************************************test this*/
 function addBullet() {
 	bullets.push({
 		pos: [player.pos[0] + player.animCreate.imgSize[0]/2 - 5,
-			 player.pos[1] - 5],
+			 player.pos[1] - 5],			/*CHANGE*/
 		animCreate: new AnimCreate ("img/sprite.png", [7,74], [11,33], 5, false, 16)
 	});
 }
@@ -277,33 +246,7 @@ function randomPos() {
     var rand = Math.random() * (width + 1) - 0.5
     rand = Math.round(rand);
     return rand;
-}
-
-function checkCollision(enemies,bullets) {
-	for(var i = 0; i < enemies.length; i++) {
-		var enPos0 = (enemies[i].pos[0] + enemies[i].animCreate.imgSize[0]);
-		var enPos1 = (enemies[i].pos[1] + enemies[i].animCreate.imgSize[1]);
-		for(var j = 0; j <  bullets.length; j++) {
-			if( (enPos1 >= (bullets[j].pos[1])) && enemies[i].pos[1] <= bullets[j].pos[1] )  {
-				if(((enemies[i].pos[0] - bullets[j].animCreate.imgSize[0]) < bullets[j].pos[0]) && enPos0 > bullets[j].pos[0] ) {
-					addExplosion(enemies[i].pos[0] - 7, bullets[j].pos[1] -30);
-					deleteEntity(bullets, j);
-					deleteEntity(enemies, i);
-					break;
-				}
-			}
-		}
-	}
-}
-
-function addExplosion(x, y) {
-	explosion.push({
-		pos: [x,y],
-		animCreate: new AnimCreate("img/sprite.png", [3,43], [20,19], 9, false, 9)
-	})
-}
-
-
+  }
 
 
 var background;
