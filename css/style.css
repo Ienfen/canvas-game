@@ -15,8 +15,6 @@ canvas{
 	vertical-align: middle;
 	cursor: pointer;
 	padding: 0.5em 2em;
-	/*min-width: 10em;
- 	min-height: 2.5em;*/
 	background-color: #f00;
 	border-radius: 10px;
 	transition: 0.4s;
@@ -26,3 +24,29 @@ canvas{
 	background-color: #00F;
 }
 
+#hide {
+	position: absolute;
+	left: 0;
+	right: 0;
+	height: 400px;
+	width: 500px;
+	margin: 0 auto;
+	display: none;
+	
+	background-color: rgba(0, 0, 0, 0.5);
+}
+
+#score {
+	text-align: center;
+	margin-top: 15px;
+}
+
+#score span {
+	padding: 0.1em 0.5em;
+	background-color: #FFFC00;
+}
+
+.gOver {
+	position: relative;
+	top:10%;
+}

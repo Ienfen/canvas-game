@@ -1,10 +1,3 @@
-var a = Date.now();
-
-
-
-
-
-
 
 var app = document.createElement("canvas");
 var ctx = app.getContext('2d');
@@ -16,7 +9,7 @@ document.body.appendChild(app);
 
 
 
-// Если ничего нет - возвращаем обычный таймер
+
 var requestAnimFrame = (function(){
   return  window.requestAnimationFrame       || 
           window.webkitRequestAnimationFrame || 
@@ -55,7 +48,7 @@ function mainLoop() {
 
 /************animCreate***********/
 
-function AnimCreate(url, posOnSprite, sizeOnSprite, frameQuantity, dir, speed ) {
+function AnimCreate(url, posOnSprite, sizeOnSprite, frameQuantity, dir, speed, once ) {
 	this.url = url;
 	this.pos = posOnSprite;
 	this.imgSize = sizeOnSprite;
@@ -63,6 +56,8 @@ function AnimCreate(url, posOnSprite, sizeOnSprite, frameQuantity, dir, speed ) 
 	this.frameQuantity = frameQuantity;
 	this.imIndex = 0;
 	this.speed = speed || 0;
+	this.once = once || false;
+	this.done = false;
 
 }
 
@@ -75,9 +70,11 @@ AnimCreate.prototype.render = function(pos) {
 	if(this.speed > 0) {
 		var indx = Math.floor(this.imIndex);
 		frame = indx % this.frameQuantity;
-		// if(frame > this.frameQuantity) {
-		// 	frame = 0;
-		// }
+		
+		if(this.once && (indx >= this.frameQuantity)) {
+			this.done = true;
+			return;
+		}
 
 	} else {
 		frame = 0;
@@ -117,31 +114,19 @@ var player = {
 
 var bullets = [];
 var explosion = [];
+var enemies = [];
 
 var playerSpeed = 150;
-var enemiesSpeed = 10;
-var bulletsSpeed = 200;
+var enemiesSpeed = 30;
+var bulletsSpeed = 250;
 
+var isGameOver = false;
 var gameTime = 0;
+var score = 0;
+var lastFire = Date.now();
 
-var enemi = {
-	position: [0,0],
-	animCreate: new AnimCreate ("img/sprite.png", [4,116], [24,46], 4, false, 6)
-}
 
-var enemies = 	[{
-					pos: [0,0],
-					animCreate: new AnimCreate ("img/sprite.png", [4,116], [24,46], 4, false, 2)
-				 },
-				 {
-					pos: [70,200],
-					animCreate: new AnimCreate ("img/sprite.png", [4,116], [24,46], 4, false, 6)
-				 }
-				];
 
-function createEnemies() {
-
-}
 
 function render(dt) {
 	renderBackground();
@@ -151,7 +136,10 @@ function render(dt) {
 	renderEntities(enemies);
 	renderEntities(bullets);
 	renderEntities(explosion);
-	renderEntity(player);
+	if(!isGameOver) {
+		renderEntity(player);	
+	}
+	
 	//player.animCreate.render(player.pos);
 
 
@@ -223,6 +211,9 @@ function updateBullet(bullet, dt) {
 function updateExplosions(list, dt) {
 	for(var i = 0; i < list.length; i++) {
 		updateExplosion(list[i], dt);
+		if(list[i].animCreate.done) {
+			deleteEntity(list, i);
+		}
 	}
 }
 
@@ -237,8 +228,8 @@ function deleteEntity(list, i) {
 function addEnemy(enemies, time) {
 	if(Math.random() < 1 - Math.pow(0.99, time)) {
 		enemies.push({
-			pos: [randomPos(), 0],
-			animCreate: new AnimCreate ("img/sprite.png", [4,116], [24,46], 4, false, 2)
+			pos: [randomPos(), - 50],
+			animCreate: new AnimCreate ("img/sprite.png", [4,116], [24,46], 4, false, 4)
 		});
 	}
 }
@@ -260,8 +251,9 @@ function checkInputs(dt) {
 		player.pos[1] += dt * playerSpeed;
 	}
 
-	if(inputStatus.isPressed("Backspace")) {
+	if(inputStatus.isPressed("Backspace") && !isGameOver && (Date.now() - lastFire > 100)) {
 		addBullet();
+		lastFire = Date.now();
 	}
 }
 
@@ -280,13 +272,35 @@ function randomPos() {
 }
 
 function checkCollision(enemies,bullets) {
+	//player vs edge
+	if (player.pos[0] < 0) {
+		player.pos[0] = 0;
+	}
+	else if (player.pos[0] > width - player.animCreate.imgSize[0]) {
+		player.pos[0] = width - player.animCreate.imgSize[0];
+	}
+	if (player.pos[1] > height - player.animCreate.imgSize[1]) {
+		player.pos[1] = height - player.animCreate.imgSize[1];
+	}
+	else if (player.pos[1] < 0) {
+		player.pos[1] = 0;
+	}
+
 	for(var i = 0; i < enemies.length; i++) {
+
 		var enPos0 = (enemies[i].pos[0] + enemies[i].animCreate.imgSize[0]);
 		var enPos1 = (enemies[i].pos[1] + enemies[i].animCreate.imgSize[1]);
+		//player vs enemies
+		if(enemies[i].pos[0] < player.pos[0] + player.animCreate.imgSize[0] &&	enPos0 > player.pos[0] && enemies[i].pos[1] < player.pos[1] && enPos1 > player.pos[1] ) {
+			gameOver();	
+		}
+
 		for(var j = 0; j <  bullets.length; j++) {
+			//bullets vs enemies
 			if( (enPos1 >= (bullets[j].pos[1])) && enemies[i].pos[1] <= bullets[j].pos[1] )  {
 				if(((enemies[i].pos[0] - bullets[j].animCreate.imgSize[0]) < bullets[j].pos[0]) && enPos0 > bullets[j].pos[0] ) {
-					addExplosion(enemies[i].pos[0] - 7, bullets[j].pos[1] -30);
+					score += 1;
+					addExplosion(enemies[i].pos[0], bullets[j].pos[1] -30);
 					deleteEntity(bullets, j);
 					deleteEntity(enemies, i);
 					break;
@@ -295,15 +309,36 @@ function checkCollision(enemies,bullets) {
 		}
 	}
 }
+function gameOver() {
+	gameTime = 0;
+	isGameOver = true;
 
+	document.getElementById("hide").style.display = 'block';
+	document.getElementById("score").innerHTML = '<span>' + score + '</span>';
+
+
+}
 function addExplosion(x, y) {
 	explosion.push({
 		pos: [x,y],
-		animCreate: new AnimCreate("img/sprite.png", [3,43], [20,19], 9, false, 9)
-	})
+		animCreate: new AnimCreate("img/sprite.png", [3,43], [20,19], 9, false, 9, true)
+	});
 }
 
+function restart() {
+	score = 0;
+	isGameOver = false;
+	gameTime = 0;
+	bullets = [];
+	explosion = [];
+	enemies = [];
 
+	player.pos[0] = (width/2) - 25;
+	player.pos[1] =  height - 40;
+
+	document.getElementById("hide").style.display = 'none';
+
+}
 
 
 var background;
@@ -311,23 +346,15 @@ var lastTime;
 
 function init(){
 	lastTime = Date.now();
-	console.log("init allImgLoag");
 	background = ctx.createPattern(loader.getImg('img/background.jpg'), "repeat");
 
 		
 	mainLoop();
 	document.getElementById('restart').addEventListener('click', function(){
-		//reset();
+		restart();
 	});
 
 
 
 }
 /************End main program *************/
-
-
-
-
-var b = Date.now();
-
-console.log(b - a + "ms");
