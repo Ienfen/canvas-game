@@ -1,4 +1,4 @@
-# canvas-game+
+# canvas-game
 
 arrow keys to move and backspace to fire
 
