@@ -107,7 +107,7 @@
 
 	var gameTime = 0;
 	var score = 0;
-	var lastScore =0;
+	var bestScore =0;
 
 	var missedEnemies = 3;
 	var difLevel = 1;
@@ -309,7 +309,7 @@
 
 		document.getElementById("hide").style.display = 'block';
 		document.getElementById("score").innerHTML = '<span> Your score: ' + score + '</span>';
-		document.getElementById("lastScore").innerHTML = '<span> Your best score: ' + lastScore + '</span>';
+		document.getElementById("lastScore").innerHTML = '<span> Your best score: ' + bestScore + '</span>';
 
 	}
 
@@ -321,8 +321,8 @@
 	}
 
 	function restart() {
-		if(score > lastScore){ 
-			lastScore = score;
+		if(score > bestScore){ 
+			bestScore = score;
 		}
 		
 		isGameOver = false;
