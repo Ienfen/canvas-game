@@ -32,7 +32,6 @@ canvas{
 	width: 500px;
 	margin: 0 auto;
 	display: none;
-	
 	background-color: rgba(0, 0, 0, 0.5);
 }
 
@@ -41,6 +40,15 @@ canvas{
 	margin-top: 15px;
 }
 
+#lastScore {
+	text-align: center;
+	margin-top: 15px;
+}
+
+#lastScore span {
+	padding: 0.1em 0.5em;
+	background-color: #0FFC00;
+}
 #score span {
 	padding: 0.1em 0.5em;
 	background-color: #FFFC00;
